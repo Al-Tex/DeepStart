@@ -1,0 +1,4 @@
+examples/out/
+examples/data/faces/
+*.gem
+.ruby-version
