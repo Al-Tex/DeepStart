@@ -1,0 +1,261 @@
+using System;
+using System.Linq;
+using System.Windows.Forms;
+
+
+namespace deepstart
+{
+    public partial class Form1 : Form
+    {
+       
+        private void button2_Click(object sender, EventArgs e)
+        {
+        void PrincipalComponentAnalysis()
+        {
+
+            [STAThread]
+            void Main(string[] args)
+            {
+                // This QuickStart Sample demonstrates how to perform
+                // a principal component analysis on a set of data.
+                //
+                // The classes used in this sample reside in the
+                // Extreme.Statistics.Multivariate namespace..
+
+                // First, our dataset, 'depress.txt', which is from
+                //     Computer-Aided Multivariate Analysis, 4th Edition
+                //     by A. A. Afifi, V. Clark and S. May, chapter 16
+                //     See http://www.ats.ucla.edu/stat/Stata/examples/cama4/default.htm
+
+                // The data is in delimited text format. Use a matrix reader to load it into a matrix.
+                DelimitedTextMatrixReader reader = new DelimitedTextMatrixReader(@"..\..\..\..\Data\Depress.txt");
+                reader.MergeConsecutiveDelimiters = true;
+                reader.SetColumnDelimiters(' ');
+                var m = reader.ReadMatrix();
+
+                // The data we want is in columns 8 through 27:
+                m = m.GetSubmatrix(0, m.RowCount - 1, 8, 27);
+
+                // 
+                // Principal component analysis
+                //
+
+                // We can construct PCA objects in many ways. Since we have the data in a matrix,
+                // we use the constructor that takes a matrix as input.
+                PrincipalComponentAnalysis pca = new PrincipalComponentAnalysis(m);
+                // and immediately perform the analysis:
+                pca.Compute();
+
+                // We can get the contributions of each component:
+                Console.WriteLine(" #    Eigenvalue Difference Contribution Contrib. %");
+                for (int i = 0; i < 5; i++)
+                {
+                    // We get the ith component from the model...
+                    PrincipalComponent component = pca.Components[i];
+                    // and write out its properties
+                    Console.WriteLine("{0,2}{1,12:F4}{2,11:F4}{2,14:F3}%{3,10:F3}%",
+                        i, component.Eigenvalue, component.EigenvalueDifference,
+                        100 * component.ProportionOfVariance,
+                        100 * component.CumulativeProportionOfVariance);
+                }
+
+                // To get the proportions for all components, use the
+                // properties of the PCA object:
+                var proportions = pca.VarianceProportions;
+
+                // To get the number of components that explain a given proportion
+                // of the variation, use the GetVarianceThreshold method:
+                int count = pca.GetVarianceThreshold(0.9);
+                Console.WriteLine("Components needed to explain 90% of variation: {0}", count);
+                Console.WriteLine();
+
+                // The value property gives the components themselves:
+                Console.WriteLine("Components:");
+                Console.WriteLine("Var.      1       2       3       4       5");
+                PrincipalComponentCollection pcs = pca.Components;
+                for (int i = 0; i < pcs.Count; i++)
+                {
+
+                    Console.WriteLine("{0,4}{1,8:F4}{2,8:F4}{3,8:F4}{4,8:F4}{5,8:F4}",
+                        i, pcs[0].Value[i], pcs[1].Value[i], pcs[2].Value[i], pcs[3].Value[i], pcs[4].Value[i]);
+                }
+                Console.WriteLine();
+
+                // The scores are the coefficients of the observations expressed as a combination
+                // of principal components.
+                var scores = pca.ScoreMatrix;
+
+                // To get the predicted observations based on a specified number of components,
+                // use the GetPredictions method.
+                var prediction = pca.GetPredictions(count);
+                Console.WriteLine("Predictions using {0} components:", count);
+                Console.WriteLine("   Pr. 1  Act. 1   Pr. 2  Act. 2   Pr. 3  Act. 3   Pr. 4  Act. 4", count);
+                for (int i = 0; i < 10; i++)
+                    Console.WriteLine("{0,8:F4}{1,8:F4}{2,8:F4}{3,8:F4}{4,8:F4}{5,8:F4}{6,8:F4}{7,8:F4}",
+                        prediction[i, 0], m[i, 0],
+                        prediction[i, 1], m[i, 1],
+                        prediction[i, 2], m[i, 2],
+                        prediction[i, 3], m[i, 3]);
+
+                Console.Write("Press any key to exit.");
+                Console.ReadLine();
+            }
+        }
+    }
+    
+
+
+public struct Line
+{
+    public double x1 { get; set; }
+    public double y1 { get; set; }
+
+    public double x2 { get; set; }
+    public double y2 { get; set; }
+}
+
+public struct Point
+{
+    public double x { get; set; }
+    public double y { get; set; }
+}
+
+public static void LineIntersection ()
+{
+    //  Returns Point of intersection if do intersect otherwise default Point (null)
+    Point FindIntersection(Line lineA, Line lineB, double tolerance = 0.001)
+    {
+        double x1 = lineA.x1, y1 = lineA.y1;
+        double x2 = lineA.x2, y2 = lineA.y2;
+
+        double x3 = lineB.x1, y3 = lineB.y1;
+        double x4 = lineB.x2, y4 = lineB.y2;
+
+        // equations of the form x = c (two vertical lines)
+        if (Math.Abs(x1 - x2) < tolerance && Math.Abs(x3 - x4) < tolerance && Math.Abs(x1 - x3) < tolerance)
+        {
+            throw new Exception("Both lines overlap vertically, ambiguous intersection points.");
+        }
+
+        //equations of the form y=c (two horizontal lines)
+        if (Math.Abs(y1 - y2) < tolerance && Math.Abs(y3 - y4) < tolerance && Math.Abs(y1 - y3) < tolerance)
+        {
+            throw new Exception("Both lines overlap horizontally, ambiguous intersection points.");
+        }
+
+        //equations of the form x=c (two vertical parallel lines)
+        if (Math.Abs(x1 - x2) < tolerance && Math.Abs(x3 - x4) < tolerance)
+        {
+            //return default (no intersection)
+            return default(Point);
+        }
+
+        //equations of the form y=c (two horizontal parallel lines)
+        if (Math.Abs(y1 - y2) < tolerance && Math.Abs(y3 - y4) < tolerance)
+        {
+            //return default (no intersection)
+            return default(Point);
+        }
+
+        //general equation of line is y = mx + c where m is the slope
+        //assume equation of line 1 as y1 = m1x1 + c1 
+        //=> -m1x1 + y1 = c1 ----(1)
+        //assume equation of line 2 as y2 = m2x2 + c2
+        //=> -m2x2 + y2 = c2 -----(2)
+        //if line 1 and 2 intersect then x1=x2=x & y1=y2=y where (x,y) is the intersection point
+        //so we will get below two equations 
+        //-m1x + y = c1 --------(3)
+        //-m2x + y = c2 --------(4)
+
+        double x, y;
+
+        //lineA is vertical x1 = x2
+        //slope will be infinity
+        //so lets derive another solution
+        if (Math.Abs(x1 - x2) < tolerance)
+        {
+            //compute slope of line 2 (m2) and c2
+            double m2 = (y4 - y3) / (x4 - x3);
+            double c2 = -m2 * x3 + y3;
+
+            //equation of vertical line is x = c
+            //if line 1 and 2 intersect then x1=c1=x
+            //subsitute x=x1 in (4) => -m2x1 + y = c2
+            // => y = c2 + m2x1 
+            x = x1;
+            y = c2 + m2 * x1;
+        }
+        //lineB is vertical x3 = x4
+        //slope will be infinity
+        //so lets derive another solution
+        else if (Math.Abs(x3 - x4) < tolerance)
+        {
+            //compute slope of line 1 (m1) and c2
+            double m1 = (y2 - y1) / (x2 - x1);
+            double c1 = -m1 * x1 + y1;
+
+            //equation of vertical line is x = c
+            //if line 1 and 2 intersect then x3=c3=x
+            //subsitute x=x3 in (3) => -m1x3 + y = c1
+            // => y = c1 + m1x3 
+            x = x3;
+            y = c1 + m1 * x3;
+        }
+        //lineA & lineB are not vertical 
+        //(could be horizontal we can handle it with slope = 0)
+        else
+        {
+            //compute slope of line 1 (m1) and c2
+            double m1 = (y2 - y1) / (x2 - x1);
+            double c1 = -m1 * x1 + y1;
+
+            //compute slope of line 2 (m2) and c2
+            double m2 = (y4 - y3) / (x4 - x3);
+            double c2 = -m2 * x3 + y3;
+
+            //solving equations (3) & (4) => x = (c1-c2)/(m2-m1)
+            //plugging x value in equation (4) => y = c2 + m2 * x
+            x = (c1 - c2) / (m2 - m1);
+            y = c2 + m2 * x;
+
+            //verify by plugging intersection point (x, y)
+            //in orginal equations (1) & (2) to see if they intersect
+            //otherwise x,y values will not be finite and will fail this check
+            if (!(Math.Abs(-m1 * x + y - c1) < tolerance
+                && Math.Abs(-m2 * x + y - c2) < tolerance))
+            {
+                //return default (no intersection)
+                return default(Point);
+            }
+        }
+
+        //x,y can intersect outside the line segment since line is infinitely long
+        //so finally check if x, y is within both the line segments
+        if (IsInsideLine(lineA, x, y) &&
+            IsInsideLine(lineB, x, y))
+        {
+            return new Point { x = x, y = y };
+        }
+
+        //return default (no intersection)
+        return default(Point);
+
+    }
+
+    // Returns true if given point(x,y) is inside the given line segment
+    bool IsInsideLine(Line line, double x, double y)
+    {
+        return (x >= line.x1 && x <= line.x2
+                    || x >= line.x2 && x <= line.x1)
+               && (y >= line.y1 && y <= line.y2
+                    || y >= line.y2 && y <= line.y1);
+    }
+}
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            static void LineIntersection();
+        }
+    }
+}

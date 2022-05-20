@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt 
 
-wine=pd.read_csv('D:/INFO/ProiectJMK/PCA-using-Python-main/PCA-using-Python-main/wine.csv')
+wine=pd.read_csv('1000_Companies.csv')
 wine.isna().sum()
 #normalize the data
 from sklearn.preprocessing import scale
@@ -25,7 +25,7 @@ for i in k:
         WSS.append(sum(cdist(norm_data.iloc[kmeans.labels_==j,:],kmeans.cluster_centers_[j].reshape(1,norm_data.shape[1]),metric='euclidean')))
     TWSS.append(sum(WSS))
 
-plt.plot(k,TWSS,'ro-');plt.xlabel('k value');plt.ylabel('TWSS')
+#plt.plot(k,TWSS,'ro-');plt.xlabel('k value');plt.ylabel('TWSS')
 #k=4
 model_k=KMeans(n_clusters=4).fit(norm_data)
 clusters_k_means=pd.DataFrame(model_k.labels_)
