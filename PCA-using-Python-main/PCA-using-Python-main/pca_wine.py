@@ -56,7 +56,7 @@ cum_var
 
 #PCA data with 3 Principal component scores
 pca_data=pd.DataFrame(pca_values)
-pca_data=pca_data.drop(columns=[3,4,5,6,7,8,9,10,11,12])
+
 k1=list(range(2,15))
 k1
 TWSS1=[]
