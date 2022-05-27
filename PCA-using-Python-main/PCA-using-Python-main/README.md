@@ -27,8 +27,8 @@ PCA (Principle Component Analysis) is an **Unsupervised Learning** Technique.
       4. All the PC's should be orthognal to each other
       
   
-  ## Data used:
-        Universities, Wine
+ 
+  
    
    
   ## Programming:
